@@ -48,6 +48,9 @@ class ConfigOut(BaseModel):
     deny_on_error: bool = True
     advisory_mode: bool = False
     notify_on_fail_open: bool = True
+    arg_anomaly_enabled: bool = False
+    arg_anomaly_zscore_threshold: float | None = None
+    arg_anomaly_min_samples: int | None = None
     spend_limit_usd: float | None = None
 
     class Config:
@@ -66,6 +69,11 @@ class ConfigPatch(BaseModel):
     deny_on_error: bool | None = None
     advisory_mode: bool | None = None
     notify_on_fail_open: bool | None = None
+    arg_anomaly_enabled: bool | None = None
+    # NULL leaves the override untouched; the module default applies whenever
+    # the column is NULL. See app.modules.behavior.arg_anomaly.Thresholds.
+    arg_anomaly_zscore_threshold: float | None = None
+    arg_anomaly_min_samples: int | None = None
 
 
 class InstallStatusOut(BaseModel):
@@ -119,6 +127,9 @@ def _config_to_out(cfg: GuardConfig) -> ConfigOut:
         deny_on_error=getattr(cfg, "deny_on_error", True),
         advisory_mode=bool(getattr(cfg, "advisory_mode", False)),
         notify_on_fail_open=bool(getattr(cfg, "notify_on_fail_open", True)),
+        arg_anomaly_enabled=bool(getattr(cfg, "arg_anomaly_enabled", False)),
+        arg_anomaly_zscore_threshold=getattr(cfg, "arg_anomaly_zscore_threshold", None),
+        arg_anomaly_min_samples=getattr(cfg, "arg_anomaly_min_samples", None),
         created_at=cfg.created_at,
         updated_at=cfg.updated_at,
     )
@@ -310,6 +321,16 @@ def patch_config(
         config.notify_on_fail_open = body.notify_on_fail_open
     if body.advisory_mode is not None:
         config.advisory_mode = body.advisory_mode
+    if body.arg_anomaly_enabled is not None:
+        config.arg_anomaly_enabled = body.arg_anomaly_enabled
+    if body.arg_anomaly_zscore_threshold is not None:
+        if body.arg_anomaly_zscore_threshold <= 0:
+            raise HTTPException(status_code=422, detail="arg_anomaly_zscore_threshold must be greater than 0")
+        config.arg_anomaly_zscore_threshold = body.arg_anomaly_zscore_threshold
+    if body.arg_anomaly_min_samples is not None:
+        if body.arg_anomaly_min_samples < 1:
+            raise HTTPException(status_code=422, detail="arg_anomaly_min_samples must be at least 1")
+        config.arg_anomaly_min_samples = body.arg_anomaly_min_samples
     config.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(config)

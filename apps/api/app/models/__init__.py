@@ -43,6 +43,7 @@ from app.modules.guard.models import (
     GuardAuditEvent,
     GuardSpendBudget,
 )
+from app.modules.behavior.models import ArgBaseline  # noqa
 from app.modules.glens.models import GlensChatSession  # noqa
 from app.modules.telemetry.models import TelemetryEvent  # noqa
 from app.modules.agent_identity.models import AgentIdentity

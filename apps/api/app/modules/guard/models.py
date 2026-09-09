@@ -62,6 +62,12 @@ class GuardConfig(Base):
     deny_on_error = Column(Boolean, nullable=False, default=True)  # fail-closed on policy eval error
     notify_on_fail_open = Column(Boolean, nullable=False, default=True)  # customer-facing WARNING when Guard engine falls open (#1520)
     advisory_mode = Column(Boolean, nullable=False, default=False)  # log all, block nothing
+    arg_anomaly_enabled = Column(Boolean, nullable=False, default=False)  # record-only arg-drift observation, advisory audit events only
+    # Tunables for the record-only checkpoint, so thresholds move by config
+    # PATCH instead of a deploy. NULL = use the module default in
+    # app.modules.behavior.arg_anomaly, keeping the default in one place.
+    arg_anomaly_zscore_threshold = Column(Float, nullable=True)
+    arg_anomaly_min_samples = Column(Integer, nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,

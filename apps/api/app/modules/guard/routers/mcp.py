@@ -476,6 +476,7 @@ def _record_event(
     conductai_workflow: str | None = None,
     prompt: str | None = None,
     source: str = "mcp",
+    rule_message: str | None = None,
 ) -> None:
     ts = datetime.now(timezone.utc)
     prev_hash, entry_hash = chain_hash_for_insert(db, ws_uuid, ts, tool_name, decision)
@@ -495,6 +496,7 @@ def _record_event(
         input_summary=raw_summary,
         decision=decision,
         rule_id=rule_id,
+        rule_message=rule_message,
         hook_session_id=session_id,
         ts=ts,
         conductai_run_id=conductai_run_id,
